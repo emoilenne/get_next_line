@@ -6,7 +6,7 @@
 /*   By: ofedorov <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/10/20 19:16:04 by ofedorov          #+#    #+#             */
-/*   Updated: 2016/10/22 15:51:14 by ofedorov         ###   ########.fr       */
+/*   Updated: 2016/10/23 17:37:57 by ofedorov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,8 @@ static void	adjust_fd(const int fd, t_list **lst, char *left, int left_size)
 				fds = fds->next;
 			else
 				(cur->prev)->next = cur->next;
+			if (cur->next != NULL)
+				(cur->next)->prev = cur->prev;
 			free(cur);
 		}
 		return ;
@@ -93,7 +95,7 @@ static int	read_buff(const int fd, t_list **lst, int *chars_read, char *buff)
 	buff[BUFF_SIZE] = '\0';
 	*chars_read = ret;
 	if ((ret == 0 && *lst == NULL) || ret == -1)
-		return (ret - 10);
+		return (ret - 8);
 	i = -1;
 	while (++i < ret)
 		if (buff[i] == '\n')
@@ -125,9 +127,9 @@ int			get_next_line(const int fd, char **line)
 	ret = 0;
 	while ((i = read_buff(fd, &lst, &ret, buff)) == BUFF_SIZE)
 		;
-	if (i + 10 == 0 || i + 10 == -1)
-		return (i + 10);
-	adjust_fd(fd, NULL, buff + i + 1, ret - i);
+	if (i + 8 == -1)
+		return (-1);
+	adjust_fd(fd, NULL, buff + i + 1, (i == -8) ? 1 : ret - i);
 	*line = create_str(lst);
-	return (1);
+	return (i == -8) ? 0 : 1;
 }
